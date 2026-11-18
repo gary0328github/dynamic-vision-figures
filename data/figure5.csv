@@ -1,0 +1,5 @@
+panel,relative_path,sha256,bytes,event_count,timestamp_min_us,timestamp_max_us,speed_hz,distance_code,angle_deg,class,x0,y0,roi_width,roi_height,registration_method,registration_status
+a,Healthy/30HZ_H_15_-30.dat,2f64f6533d6164d703a017c8abd23c2bf21d09caf145aa0b36786004396e0e60,334406636,41800817,4128,27153663,30,15,-30,Healthy,170,202,68,152,human_png_mechanical_anchor_center_v1,approved_recordwise_human_annotation
+b,Healthy/30HZ_H_15_0.dat,559b2ee8dda572bdca387b9f4d43c868567db5e740f3466247a732d03bdca042,677505572,84688184,7520,10358671,30,15,0,Healthy,196,149,68,152,human_png_mechanical_anchor_center_v1,approved_recordwise_human_annotation
+c,Healthy/30HZ_H_18_-30.dat,7a1a6299fc7111cdbaf4ecb05d4bae3833e090068dc167c3ffb53b2c7ab9dba9,579297340,72412155,6288,10158863,30,18,-30,Healthy,196,190,68,152,human_png_mechanical_anchor_center_v1,approved_recordwise_human_annotation
+d,Healthy/30HZ_H_18_0.dat,01f88de1eddd1496e22ddba771b6ec68a2ed4b44f57800bbbf394da5748a572b,474722244,59340268,6496,10199391,30,18,0,Healthy,218,149,68,152,human_png_mechanical_anchor_center_v1,approved_recordwise_human_annotation
