@@ -1,10 +1,10 @@
 # Dynamic vision fault diagnosis figure materials
 
-This repository provides source data and visualization scripts for Figures 5–9 of the associated Journal of Vibration and Control manuscript. The same source tables also support Supplementary Figures S5 and S6.
+This repository provides source data and visualization scripts for Figures 5–9 of the associated Journal of Vibration and Control manuscript. The same source tables also support Supplementary Figures S4–S6. The PNG exports in `figures/` match the files embedded in the submission.
 
 | Figure | Source table | Contents |
 | --- | --- | --- |
-| 5 | [figure5.csv](data/figure5.csv) | Four XJTU-DV Pump recording identifiers, original DAT checksums and registered ROI coordinates. |
+| 5 and S4 | [figure5.csv](data/figure5.csv) | Four XJTU-DV Pump recording identifiers, original DAT checksums and registered ROI coordinates. |
 | 6 | [figure6.csv](data/figure6.csv) | Recording-level Macro-F1 for the component comparisons at 30 Hz and 40 Hz. |
 | 7 and S5 | [figure7.csv](data/figure7.csv) | Paired Pump task–seed scores and signed differences. The original panels 7(a,b) are Figure 7, and 7(c,d) are Supplementary Figure S5(a,b). |
 | 8 | [figure8.csv](data/figure8.csv) | Recording-level Macro-F1 by held-out Rotor domain, method and training seed. |
@@ -14,16 +14,15 @@ Original recordings are hosted in the [XJTU-DV Zenodo archive](https://doi.org/1
 
 ## Render the figures
 
-Run from the repository root. The figures use Arial for the t-SNE plot and the event-rate projections. Font and library versions can affect rendering; the checked-in PNG and SVG files in `figures/` preserve the previous layouts.
+Run from the repository root on Windows with Arial installed. The checked-in exports were verified with Python 3.12.5, Matplotlib 3.10.0, NumPy 2.2.2 and Pillow 11.1.0.
 
-```text
+~~~text
 python -m pip install -r requirements.txt
-python scripts/figure5.py --pump-root /path/to/Pump/Data
-python scripts/plot_figures.py
-python scripts/figure9.py
 python scripts/render_current.py
-```
+~~~
 
-`figure5.py` reads the four original DAT files from `Healthy/`, checks the stored hashes, and draws the full-record event rates using one logarithmic display scale. `plot_figures.py` recomputes Figures 6–8 and Supplementary Figure S5 from their tabular scores. `figure9.py` renders Figure 9 and Supplementary Figure S6 from the archived coordinates. `render_current.py` exports the archived SVG layouts of Figures 6–8. CSV-based plots are written to `outputs/`, and SVG-based exports to `final_png/` by default.
+The script writes the current Figure 5–9 and Supplementary Figure S4–S6 PNGs to final_png/. For the 15 cm and 18 cm event-rate views, it assembles the archived projections using the shared scale. Figures 7 and S5 preserve the plot marks from the original four-panel render, and Figure 9 uses the original Pump embeddings. Figure 6 and Figure 8 are drawn directly from their numerical tables. Supplementary Figure S6 is drawn from the archived Rotor t-SNE coordinates. No embedding is fitted again when rendering.
+
+The numerical plotting scripts plot_figures.py and figure9.py provide independent checks and write to outputs/. The preprocessing script figure5.py hashes the four original Healthy DAT recordings and recomputes their event-rate projections from XJTU-DV. Those recordings are needed only for that raw-data check.
 
 The software license applies to the visualization scripts. The original XJTU-DV recordings remain available from the dataset record under its stated terms.
