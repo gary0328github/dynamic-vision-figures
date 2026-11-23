@@ -12,23 +12,8 @@ from matplotlib import font_manager
 font_family='Liberation Sans' if 'Liberation Sans' in {f.name for f in font_manager.fontManager.ttflist} else 'DejaVu Sans'
 plt.rcParams.update({'font.family':font_family,'font.size':7,'pdf.fonttype':42,'svg.fonttype':'none','axes.linewidth':.7,'savefig.facecolor':'white','hatch.linewidth':.5})
 BLUE='#3164A0';LIGHT='#BCD3EA';ORANGE='#DE853C';TEAL='#318F89';GREY='#7C8793';INK='#263541'
-def schematic_export(fig, number, panels):
+def schematic_export(fig, number):
     stem = OUT / f'figure{number + 2}'
-    if number == 5:
-        width, height = fig.get_size_inches()
-        extra_height = 0.20
-        positions = [ax.get_position().frozen() for ax in panels]
-        fig.set_size_inches(width, height + extra_height)
-        for ax, bounds in zip(panels, positions):
-            ax.set_position([bounds.x0, (bounds.y0 * height + extra_height) / (height + extra_height),
-                             bounds.width, bounds.height * height / (height + extra_height)])
-        fig.legends[0].set_bbox_to_anchor((0.55, 0.008 * height / (height + extra_height)),
-                                          transform=fig.transFigure)
-        for ax, name in zip(panels, ('Performance across Pump speeds', 'Overall and lower-tail performance',
-                                     'Separately ranked task–seed scores', 'Paired task–seed changes')):
-            ax.set_title(f"({chr(97 + panels.index(ax))}) {name}", loc="left")
-        panels[0].set_xlabel('Rotational speed')
-        panels[3].set_xlabel('Paired task–seed results, grouped by speed')
     fig.savefig(stem.with_suffix('.png'), dpi=600)
     fig.savefig(stem.with_suffix('.svg'))
     plt.close(fig)
@@ -93,25 +78,33 @@ def figure5():
     s=json.loads((OUT/'numeric_verification.json').read_text())['pump'];f=s['DARM_FULL'];c=s['DARM_PP025']
     rows=pump_rows()
     pairs=sorted(read_rows(7),key=lambda r:(int(r['speed']),r['task_id'],int(r['seed'])))
-    fig,axs=plt.subplots(2,2,figsize=(7.224,5.418));fig.subplots_adjust(left=.083,right=.985,bottom=.105,top=.94,wspace=.35,hspace=.63)
-    a,b,cax,d=axs.ravel()
-    quantitative_style(a,'(a) Across Pump speed blocks');p,q=paired_bars(a,f['speeds'],c['speeds'],['20 Hz','30 Hz','40 Hz']);a.set_xlabel('Speed block',fontsize=8)
-    quantitative_style(b,'(b) Aggregate and difficult tail');paired_bars(b,[f[k] for k in ['overall','worst','bottom25']],[c[k] for k in ['overall','worst','bottom25']],['Overall mean','Worst speed','Bottom-25%']);b.set_xlabel('Summary metric',fontsize=8)
-    quantitative_style(cax,'(c) Separately ranked endpoints')
+    fig, (a, b) = plt.subplots(1, 2, figsize=(7.224, 2.85))
+    fig.subplots_adjust(left=.083, right=.985, bottom=.27, top=.88, wspace=.35)
+    quantitative_style(a,'(a) Performance across Pump speeds');p,q=paired_bars(a,f['speeds'],c['speeds'],['20 Hz','30 Hz','40 Hz']);a.set_xlabel('Rotational speed',fontsize=8)
+    quantitative_style(b,'(b) Overall and lower-tail performance');paired_bars(b,[f[k] for k in ['overall','worst','bottom25']],[c[k] for k in ['overall','worst','bottom25']],['Overall mean','Worst speed','Bottom-25%']);b.set_xlabel('Summary metric',fontsize=8)
+    fig.legend([p,q],['Full DARM','Calibrated DARM (PtP = 0.25)'],loc='lower center',ncol=2,frameon=False,fontsize=7.6)
+    schematic_export(fig, 5)
+
+    fig, (cax, d) = plt.subplots(1, 2, figsize=(7.224, 2.85))
+    fig.subplots_adjust(left=.083, right=.985, bottom=.27, top=.88, wspace=.35)
+    quantitative_style(cax,'(a) Separately ranked task–seed scores')
     for m,col,mark in [('DARM_FULL',BLUE,'o'),('DARM_PP025',ORANGE,'^')]:
         v=sorted(float(r['target_DAT'])*100 for r in rows if r['method']==m)
         cax.scatter(np.arange(1,37),v,c=col,marker=mark,s=14,zorder=3,linewidths=.3,edgecolors='white')
     cax.axvspan(.5,9.5,color='#F2ECD9',zorder=0);cax.text(1.1,94,'Lowest nine',fontsize=7)
     cax.set(xlim=(.5,36.5),ylim=(0,101),xticks=[1,9,18,27,36]);cax.set_xlabel('Rank within each method',fontsize=8);cax.set_ylabel('Recording-level Macro-F1 (%)',fontsize=8)
-    quantitative_style(d,'(d) Matched endpoint changes')
+    quantitative_style(d,'(b) Paired task–seed changes')
     delta=np.array([float(r['delta'])*100 for r in pairs]);colors=[ORANGE if x>1e-8 else BLUE if x< -1e-8 else GREY for x in delta]
     d.bar(np.arange(36),delta,color=colors,edgecolor=INK,linewidth=.3,width=.7)
     ties=np.where(abs(delta)<1e-8)[0];d.scatter(ties,np.zeros(len(ties)),marker='s',s=7,c=GREY,zorder=3)
     d.set(xlim=(-.8,35.8),ylim=(-62,72),xticks=[5.5,17.5,29.5],xticklabels=['20 Hz','30 Hz','40 Hz'],yticks=[-60,-30,0,30,60])
     d.text(.98,.95,'11 increases / 17 unchanged / 8 decreases',ha='right',va='top',transform=d.transAxes,fontsize=6.4)
-    d.set_xlabel('Matched task–seed cells, grouped by speed',fontsize=7);d.set_ylabel('Δ recording-level Macro-F1 (pp)',fontsize=8)
-    fig.legend([p,q],['Full DARM','Calibrated DARM (PtP = 0.25)'],loc='lower center',bbox_to_anchor=(.55,.008),ncol=2,frameon=False,fontsize=7.6)
-    schematic_export(fig,5,list(axs.ravel()))
+    d.set_xlabel('Paired task–seed results, grouped by speed',fontsize=7);d.set_ylabel('Δ recording-level Macro-F1 (pp)',fontsize=8)
+    handles = [plt.Rectangle((0, 0), 1, 1, color=color) for color in (BLUE, ORANGE)]
+    fig.legend(handles, ['Full DARM','Calibrated DARM (PtP = 0.25)'], loc='lower center', ncol=2, frameon=False, fontsize=7.6)
+    fig.savefig(OUT / 'figureS5.png', dpi=600)
+    fig.savefig(OUT / 'figureS5.svg')
+    plt.close(fig)
 
 def figure6():
     r=json.loads((OUT/'numeric_verification.json').read_text())['rotor'];f=r['DARM_FULL'];c=r['DARM_PP025'];dom=list(f['by_domain']);seeds=['42','2026','3407']
@@ -126,7 +119,7 @@ def figure6():
     a.set(yticks=y,yticklabels=dom,xlim=(0,65),xticks=np.arange(0,61,10));a.invert_yaxis();a.set_xlabel('Recording-level Macro-F1 (%)',fontsize=8);a.set_ylabel('Held-out domain',fontsize=8)
     quantitative_style(b,'(b) Seed means');paired_bars(b,[f['by_seed'][s] for s in seeds],[c['by_seed'][s] for s in seeds],seeds,ymax=70,w=.42);b.set_xlabel('Training seed',fontsize=8)
     fig.legend([p,q],['Full DARM','Calibrated DARM (PtP = 0.25)'],loc='lower center',bbox_to_anchor=(.55,.012),ncol=2,frameon=False,fontsize=7.6)
-    schematic_export(fig,6,[a,b])
+    schematic_export(fig,6)
 
 
 def figure4():
@@ -157,8 +150,8 @@ def figure4():
                 axis.text(bar.get_x()+bar.get_width()/2,bar.get_height()+1,f'{bar.get_height():.2f}',ha='center',fontsize=8)
             delta=means[-1]-means[-2]
             axis.text(.5,.92,f'Adding PtP: {delta:+.2f} pp',transform=axis.transAxes,ha='center',fontsize=8,color=INK)
-        schematic_export(fig,4,list(axes))
+        schematic_export(fig,4)
 
 if __name__=='__main__':
     verify_data();figure4();figure5();figure6()
-    print('Figures 6–8 drawn from the numerical source tables.')
+    print('Figures 6–8 and Supplementary Figure S5 drawn from the numerical source tables.')
